@@ -58,7 +58,7 @@ No generic questions. No one-size-fits-all prompts. Every question is grounded i
 
 <div align="center">
 
-| Resume Upload | Live Interview | Feedback Report |
+| Resume Upload | Data Extraction | Interview Chat |
 |:---:|:---:|:---:|
 | ![Upload your resume](https://i.postimg.cc/Qx2vGt2r/Screenshot_(20).png) | ![Parsing](https://i.postimg.cc/7YFj86Fk/Screenshot_(22).png) | ![Interview Chat](https://i.postimg.cc/pXw3bTwv/Screenshot_(23).png) |
 | *Drag & drop your PDF resume* | *Extracts data from your resume in seconds* | *Chat-style interview with typing indicator* |
