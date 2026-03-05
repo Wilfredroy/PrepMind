@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepMind | Interview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #fff; color: #1a1a1a; overflow: hidden; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+        *::-webkit-scrollbar { display: none; }
+
+        /* ── WELCOME LOGO (for pre-interview screen) ── */
+        .welcome-logo-wrapper {
+            width: 96px; height: 96px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .welcome-logo-rotate {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            animation: spin-in 1.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+            transform-origin: center;
+        }
+        @keyframes spin-in {
+            0%   { transform: scale(0.4) rotate(-45deg); opacity: 0; }
+            70%  { transform: scale(1.08) rotate(38deg); opacity: 1; }
+            85%  { transform: scale(0.96) rotate(33deg); }
+            100% { transform: scale(1) rotate(35deg); opacity: 1; }
+        }
+        .welcome-logo-svg line {
+            stroke-dasharray: 20; stroke-dashoffset: 20;
+            animation: line-draw 0.6s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .welcome-logo-svg line:nth-child(1) { animation-delay: 0.15s; }
+        .welcome-logo-svg line:nth-child(2) { animation-delay: 0.25s; }
+        .welcome-logo-svg line:nth-child(3) { animation-delay: 0.35s; }
+        .welcome-logo-svg line:nth-child(4) { animation-delay: 0.45s; }
+        .welcome-logo-svg line:nth-child(5) { animation-delay: 0.55s; }
+        @keyframes line-draw { to { stroke-dashoffset: 0; } }
+
+        /* Float after spin */
+        .welcome-logo-wrapper.floating .welcome-logo-rotate {
+            animation: spin-in 1.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards,
+                       float-logo 4s 1.4s ease-in-out infinite;
+        }
+        @keyframes float-logo {
+            0%,100% { transform: rotate(35deg) translateY(0); }
+            50%      { transform: rotate(35deg) translateY(-8px); }
+        }
+
+        /* Dust particles */
+        .dust-particle {
+            position: absolute; width: 4px; height: 4px;
+            border-radius: 50%; pointer-events: none; opacity: 0;
+        }
+        .dust-particle.pop {
+            animation: dust-fly var(--dur) var(--delay) ease-out forwards;
+        }
+        @keyframes dust-fly {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.9; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* ── MESSAGES ── */
+        .msg-in {
+            animation: msg-appear 0.35s cubic-bezier(0.4,0,0.2,1) both;
+            opacity: 0;
+        }
+        @keyframes msg-appear {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Typing dots */
+        .typing-dots { display:flex; gap:4px; align-items:center; justify-content:center; padding:10px 0; }
+        .typing-dots span {
+            width:7px; height:7px; background:#d1d5db;
+            border-radius:50%; animation:tdot 1.2s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay:0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay:0.4s; }
+        @keyframes tdot { 0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-7px);} }
+
+        /* ── HEADER LOGO ── */
+        .logo-asterisk { transform:rotate(35deg); display:inline-flex; align-items:center; justify-content:center; }
+        /* Header asterisk line-draw on page load */
+        .header-logo-svg line {
+            stroke-dasharray: 20; stroke-dashoffset: 20;
+            animation: line-draw 0.5s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .header-logo-svg line:nth-child(1) { animation-delay: 0.05s; }
+        .header-logo-svg line:nth-child(2) { animation-delay: 0.12s; }
+        .header-logo-svg line:nth-child(3) { animation-delay: 0.19s; }
+        .header-logo-svg line:nth-child(4) { animation-delay: 0.26s; }
+        .header-logo-svg line:nth-child(5) { animation-delay: 0.33s; }
+
+        /* ── BUBBLE ── */
+        .bubble {
+            background: #f9f9f9;
+            border: 1px solid #efefef;
+            border-radius: 16px;
+            padding: 16px 22px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #1a1a1a;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+        .bubble.user-bubble {
+            background: #000;
+            border-color: #000;
+            color: #fff;
+        }
+
+        /* hbox */
+        .hbox {
+            border-radius: 10px; padding: 13px 16px; margin: 8px 0;
+            font-size: 0.875rem; line-height: 1.7;
+        }
+        .hbox.green  { background:#f0fdf4; border-left:3px solid #22c55e; color:#14532d; }
+        .hbox.yellow { background:#fffbeb; border-left:3px solid #f59e0b; color:#44403c; }
+        .hbox.blue   { background:#eff6ff; border-left:3px solid #3b82f6; color:#1e3a5f; }
+        .hbox.gray   { background:#f9fafb; border-left:3px solid #d1d5db; color:#374151; }
+        .hbox.red    { background:#fff1f2; border-left:3px solid #ef4444; color:#7f1d1d; }
+
+        /* progress dots */
+        .pdot { width:7px; height:7px; border-radius:50%; background:#e5e7eb; transition:all 0.4s; }
+        .pdot.done   { background:#000; }
+        .pdot.active { background:#000; box-shadow:0 0 0 2px #e5e7eb; }
+
+        /* Progress dot pulse when active */
+        .pdot.active { animation: dot-pulse 1.5s ease-in-out infinite; }
+        @keyframes dot-pulse {
+            0%,100% { box-shadow: 0 0 0 2px #e5e7eb; }
+            50%     { box-shadow: 0 0 0 4px #d1d5db; }
+        }
+
+        #messages-list {
+            padding: 28px 24px 60px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Input area */
+        #answer-area {
+            border-top: 1px solid #f3f4f6;
+            padding: 16px 24px;
+            background: #fff;
+            animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        #answer-input {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: block;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px 18px;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            min-height: 56px;
+            max-height: 160px;
+        }
+        #answer-input:focus { border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,0.06); }
+        #answer-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #send-row {
+            max-width: 600px; margin: 10px auto 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        #send-btn {
+            background: #000; color: #fff;
+            padding: 10px 24px; border-radius: 99px;
+            font-size: 0.85rem; font-weight: 500; font-family: 'Inter', sans-serif;
+            cursor: pointer; transition: all 0.15s;
+            border: none;
+        }
+        #send-btn:hover:not(:disabled) { opacity: 0.85; transform: scale(1.03); }
+        #send-btn:active:not(:disabled) { transform: scale(0.97); }
+        #send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        #char-hint { font-size: 0.75rem; color: #9ca3af; }
+
+        /* Score cards */
+        .score-bar-track {
+            height: 6px; background: #e5e7eb; border-radius: 99px;
+            overflow: hidden; margin-top: 8px;
+        }
+        .score-bar-fill {
+            height: 100%; border-radius: 99px; background: #000;
+            width: 0%;
+            transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* Welcome screen (pre-interview if no resume) */
+        #welcome-screen {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            height:100%; text-align:center; padding-bottom:5vh;
+        }
+
+        /* Fade-in for page-level entrance */
+        .fade-in { animation: fadeIn 0.4s ease both; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+        .enter-1 { animation: fadeIn 0.5s 0.1s ease both; opacity:0; }
+        .enter-2 { animation: fadeIn 0.5s 0.25s ease both; opacity:0; }
+
+        .hidden { display:none !important; }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+<!-- HEADER -->
+<header class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 flex-shrink-0">
+    <div class="flex items-center gap-2">
+        <div class="logo-asterisk w-6 h-6">
+            <svg class="header-logo-svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="5" stroke-linecap="butt">
+                <line x1="12" y1="12" x2="12" y2="2"/>
+                <line x1="12" y1="12" x2="21.51" y2="8.91"/>
+                <line x1="12" y1="12" x2="17.88" y2="20.09"/>
+                <line x1="12" y1="12" x2="6.12" y2="20.09"/>
+                <line x1="12" y1="12" x2="2.49" y2="8.91"/>
+            </svg>
+        </div>
+        <h1 class="text-xl font-semibold tracking-tight enter-1">PrepMind</h1>
+    </div>
+    <div class="flex items-center gap-3 enter-2">
+        <div class="flex gap-1.5" id="progress-dots"></div>
+        <span class="px-2 py-1 bg-gray-100 rounded text-[10px] uppercase tracking-wider text-black font-bold" id="q-label">Interview</span>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main id="chat-window" class="flex-1 overflow-y-auto" style="width:100%">
+    <div id="messages-list"></div>
+</main>
+
+<!-- INPUT -->
+<div id="answer-area" class="flex-shrink-0 hidden">
+    <textarea id="answer-input" placeholder="Type your answer here…" rows="2" onkeydown="onKeyDown(event)" oninput="onInput()"></textarea>
+    <div id="send-row">
+        <span id="char-hint">Press Shift+Enter for new line</span>
+        <button id="send-btn" onclick="sendAnswer()" disabled>Send →</button>
+    </div>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────
+const resumeData = JSON.parse(sessionStorage.getItem('resumeData') || 'null');
+const chatWindow = document.getElementById('chat-window');
+const msgList    = document.getElementById('messages-list');
+const progDots   = document.getElementById('progress-dots');
+
+let history = [];
+let questionNumber = 0;
+let interviewEnded = false;
+const TOTAL_QUESTIONS = 8;
+
+// ── PROGRESS DOTS ─────────────────────────────────────────────
+function buildDots() {
+    for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+        const d = document.createElement('div');
+        d.className = 'pdot'; d.id = 'pd' + i;
+        progDots.appendChild(d);
+    }
+}
+function setProgress(n) {
+    for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+        const d = document.getElementById('pd' + i);
+        if (!d) continue;
+        d.className = i < n ? 'pdot done' : i === n ? 'pdot active' : 'pdot';
+    }
+    document.getElementById('q-label').textContent =
+        n >= TOTAL_QUESTIONS ? 'Complete' : `Q ${n + 1} / ${TOTAL_QUESTIONS}`;
+}
+
+// ── DUST EXPLOSION (identical to template.html) ───────────────
+function spawnDust(wrapperId) {
+    const wrapper = document.getElementById(wrapperId);
+    if (!wrapper) return;
+    const cx = wrapper.offsetWidth / 2;
+    const cy = wrapper.offsetHeight / 2;
+    const colors = ['#000000','#555555','#888888','#aaaaaa','#cccccc'];
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'dust-particle';
+        const angle = (360 / count) * i + (Math.random() * 20 - 10);
+        const dist  = 28 + Math.random() * 36;
+        const rad   = angle * Math.PI / 180;
+        const tx    = Math.cos(rad) * dist;
+        const ty    = Math.sin(rad) * dist;
+        const dur   = (0.5 + Math.random() * 0.4).toFixed(2) + 's';
+        const delay = (Math.random() * 0.1).toFixed(2) + 's';
+        el.style.cssText = `
+            left:${cx}px; top:${cy}px;
+            background:${colors[i % colors.length]};
+            --tx:${tx}px; --ty:${ty}px;
+            --dur:${dur}; --delay:${delay};
+            width:${2 + Math.random() * 3}px;
+            height:${2 + Math.random() * 3}px;
+        `;
+        wrapper.appendChild(el);
+        requestAnimationFrame(() => { el.classList.add('pop'); });
+        setTimeout(() => el.remove(), 800);
+    }
+    wrapper.classList.add('floating');
+}
+
+// ── RENDERING ─────────────────────────────────────────────────
+function addMsg(fn, onDone, delayMs) {
+    const tw = document.createElement('div');
+    tw.className = 'msg-in';
+    tw.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+    msgList.appendChild(tw);
+    scroll();
+    const d = delayMs !== undefined ? delayMs : 700 + Math.random() * 400;
+    setTimeout(() => {
+        tw.remove();
+        const row = document.createElement('div');
+        row.className = 'msg-in';
+        fn(row);
+        msgList.appendChild(row);
+        scroll();
+        if (onDone) setTimeout(onDone, 80);
+    }, d);
+}
+
+function B(html) { return `<div class="bubble">${html}</div>`; }
+function scroll() {
+    setTimeout(() => chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }), 60);
+}
+
+// ── INPUT ─────────────────────────────────────────────────────
+function enableInput() {
+    const area = document.getElementById('answer-area');
+    area.classList.remove('hidden');
+    // Re-trigger slide-up each time input is enabled
+    area.style.animation = 'none';
+    requestAnimationFrame(() => { area.style.animation = ''; });
+    const input = document.getElementById('answer-input');
+    input.disabled = false;
+    input.value = '';
+    input.focus();
+    document.getElementById('send-btn').disabled = true;
+}
+function disableInput() {
+    const input = document.getElementById('answer-input');
+    input.disabled = true;
+    document.getElementById('send-btn').disabled = true;
+}
+function onKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAnswer(); }
+}
+function onInput() {
+    const val = document.getElementById('answer-input').value.trim();
+    document.getElementById('send-btn').disabled = val.length === 0;
+}
+
+// ── NO RESUME — show welcome-style screen ─────────────────────
+if (!resumeData) {
+    buildDots();
+    // Show a welcome-logo screen with full spin-in + dust + float
+    msgList.innerHTML = `
+        <div id="welcome-screen">
+            <div class="welcome-logo-wrapper" id="welcomeLogo">
+                <div class="welcome-logo-rotate">
+                    <svg class="welcome-logo-svg" style="width:96px;height:96px" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4.5" stroke-linecap="butt">
+                        <line x1="12" y1="12" x2="12" y2="1.5"/>
+                        <line x1="12" y1="12" x2="22.01" y2="8.41"/>
+                        <line x1="12" y1="12" x2="18.38" y2="20.59"/>
+                        <line x1="12" y1="12" x2="5.62" y2="20.59"/>
+                        <line x1="12" y1="12" x2="1.99" y2="8.41"/>
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-2xl font-semibold tracking-tight mb-2">No resume found</h2>
+            <p class="text-gray-500 text-sm max-w-xs leading-relaxed mb-6">Please go back and upload your resume first.</p>
+            <button onclick="window.location.href='/'" style="background:#000;color:#fff;padding:10px 28px;border-radius:99px;font-size:0.85rem;font-weight:500;cursor:pointer;border:none;transition:all 0.15s" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">← Upload Resume</button>
+        </div>`;
+    setTimeout(() => spawnDust('welcomeLogo'), 1200);
+} else {
+    init();
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+function init() {
+    buildDots();
+    setProgress(0);
+    startInterview();
+}
+
+async function startInterview() {
+    try {
+        const res = await fetch('/start-interview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resume_data: resumeData })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+
+        questionNumber = 1;
+        history.push({ role: 'interviewer', text: data.message });
+
+        addMsg(row => {
+            row.innerHTML = B(formatText(data.message));
+        }, () => { enableInput(); }, 600);
+
+    } catch (err) {
+        addMsg(row => {
+            row.innerHTML = `<div class="hbox red">Error starting interview: ${err.message}</div>`;
+        }, null, 300);
+    }
+}
+
+// ── SEND ANSWER ───────────────────────────────────────────────
+async function sendAnswer() {
+    const input = document.getElementById('answer-input');
+    const answer = input.value.trim();
+    if (!answer || interviewEnded) return;
+
+    disableInput();
+
+    // Animate user message in
+    const userRow = document.createElement('div');
+    userRow.className = 'msg-in';
+    userRow.innerHTML = `<div style="display:flex;justify-content:flex-end"><div class="bubble user-bubble" style="max-width:85%">${formatText(answer)}</div></div>`;
+    msgList.appendChild(userRow);
+    scroll();
+
+    history.push({ role: 'candidate', text: answer });
+
+    const isFinal = questionNumber >= TOTAL_QUESTIONS;
+
+    try {
+        if (isFinal) {
+            interviewEnded = true;
+            document.getElementById('answer-area').classList.add('hidden');
+
+            const res = await fetch('/end-interview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resume_data: resumeData, history })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+
+            setProgress(TOTAL_QUESTIONS);
+            showFeedback(data.feedback);
+
+        } else {
+            const res = await fetch('/next-question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resume_data: resumeData, history, question_number: questionNumber })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+
+            questionNumber = data.question_number;
+            history.push({ role: 'interviewer', text: data.message });
+            setProgress(questionNumber - 1);
+
+            if (data.is_final) {
+                addMsg(row => {
+                    row.innerHTML = B(formatText(data.message));
+                    const note = document.createElement('div');
+                    note.className = 'hbox yellow';
+                    note.style.marginTop = '10px';
+                    note.textContent = `Final question! Answer thoughtfully — we'll provide detailed feedback after this.`;
+                    row.appendChild(note);
+                }, () => { enableInput(); });
+            } else {
+                addMsg(row => {
+                    row.innerHTML = B(formatText(data.message));
+                }, () => { enableInput(); });
+            }
+        }
+
+    } catch (err) {
+        addMsg(row => {
+            row.innerHTML = `<div class="hbox red">Error: ${err.message}</div>`;
+        }, () => { enableInput(); }, 300);
+    }
+}
+
+// ── FEEDBACK ─────────────────────────────────────────────────
+function showFeedback(fb) {
+    addMsg(row => {
+        const scoreColor = fb.overall_score >= 8 ? '#22c55e' : fb.overall_score >= 6 ? '#f59e0b' : '#ef4444';
+        row.innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+            <div style="font-size:3rem;margin-bottom:8px">
+                ${fb.overall_score >= 8 ? '🏆' : fb.overall_score >= 6 ? '👍' : '💪'}
+            </div>
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9ca3af;margin-bottom:4px">Overall Score</div>
+            <div style="font-size:3.5rem;font-weight:600;color:${scoreColor};line-height:1">${fb.overall_score}<span style="font-size:1.5rem;color:#9ca3af">/10</span></div>
+            <div style="margin-top:8px;font-size:0.85rem;color:#52525b;max-width:400px;margin-inline:auto">${fb.overall_summary}</div>
+        </div>`;
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = `
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#9ca3af;margin-bottom:12px">Score Breakdown</div>
+            ${scoreRow('Communication', fb.communication_score)}
+            ${scoreRow('Technical', fb.technical_score)}
+            ${scoreRow('Confidence', fb.confidence_score)}
+            <div style="margin-top:16px;padding:12px;background:#f9fafb;border-radius:10px;font-size:0.8rem;color:#52525b">
+                <span style="font-weight:600;color:#1a1a1a">Hire Recommendation: </span>${fb.hire_recommendation}
+            </div>`;
+            // Animate score bars after render
+            setTimeout(() => {
+                row.querySelectorAll('.score-bar-fill').forEach(bar => {
+                    const target = bar.getAttribute('data-pct');
+                    bar.style.width = target + '%';
+                });
+            }, 100);
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = B(`<strong>✅ Your Strengths</strong><br><br>${(fb.strengths || []).map(s => `• ${s}`).join('<br>')}`);
+            }, () => {
+                addMsg(row => {
+                    row.innerHTML = B(`<strong>📈 Areas to Improve</strong><br><br>${(fb.improvements || []).map(s => `• ${s}`).join('<br>')}`);
+                }, () => {
+                    if (fb.best_answer) {
+                        addMsg(row => {
+                            row.innerHTML = `<div class="hbox blue"><strong>⭐ Your Best Answer</strong><br><em>"${fb.best_answer}"</em></div>`;
+                        }, () => showFocusAreas(fb));
+                    } else {
+                        showFocusAreas(fb);
+                    }
+                });
+            });
+        });
+    }, 500);
+}
+
+function showFocusAreas(fb) {
+    addMsg(row => {
+        const chips = (fb.focus_areas || []).map(a =>
+            `<span style="font-size:0.75rem;font-weight:500;padding:4px 12px;border-radius:99px;border:1px solid #e5e7eb;background:#fff;color:#3f3f46;display:inline-block;margin:3px">${a}</span>`
+        ).join('');
+        row.innerHTML = B(`<strong>📚 Focus Areas for Next Time</strong><br><br><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">${chips}</div>`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = B(`${fb.closing_message || 'Great job completing the interview!'}`);
+            const btnRow = document.createElement('div');
+            btnRow.style.cssText = 'display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap';
+            btnRow.innerHTML = `<button onclick="window.location.href='/'" style="background:#000;color:#fff;padding:10px 24px;border-radius:99px;font-size:0.85rem;font-weight:500;cursor:pointer;border:none;transition:all 0.15s" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">Practice Again →</button>`;
+            row.appendChild(btnRow);
+        });
+    });
+}
+
+function scoreRow(label, score) {
+    const pct = (score / 10) * 100;
+    return `
+    <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:5px">
+            <span style="color:#52525b">${label}</span>
+            <span style="font-weight:600;color:#1a1a1a">${score}/10</span>
+        </div>
+        <div class="score-bar-track">
+            <div class="score-bar-fill" data-pct="${pct}" style="width:0%"></div>
+        </div>
+    </div>`;
+}
+
+// ── FORMAT TEXT ───────────────────────────────────────────────
+function formatText(text) {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+}
+</script>
+</body>
+</html>

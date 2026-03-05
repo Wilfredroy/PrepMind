@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepMind | Two Sum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #fff; color: #1a1a1a; overflow: hidden; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+        *::-webkit-scrollbar { display: none; }
+
+        /* ── WELCOME LOGO ── */
+        .welcome-logo-wrapper {
+            width: 96px; height: 96px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .welcome-logo-rotate {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            animation: spin-in 1.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+            transform-origin: center;
+        }
+        @keyframes spin-in {
+            0%   { transform: scale(0.4) rotate(-45deg); opacity: 0; }
+            70%  { transform: scale(1.08) rotate(38deg); opacity: 1; }
+            85%  { transform: scale(0.96) rotate(33deg); }
+            100% { transform: scale(1) rotate(35deg); opacity: 1; }
+        }
+        .welcome-logo-svg line {
+            stroke-dasharray: 20; stroke-dashoffset: 20;
+            animation: line-draw 0.6s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .welcome-logo-svg line:nth-child(1) { animation-delay: 0.15s; }
+        .welcome-logo-svg line:nth-child(2) { animation-delay: 0.25s; }
+        .welcome-logo-svg line:nth-child(3) { animation-delay: 0.35s; }
+        .welcome-logo-svg line:nth-child(4) { animation-delay: 0.45s; }
+        .welcome-logo-svg line:nth-child(5) { animation-delay: 0.55s; }
+        @keyframes line-draw { to { stroke-dashoffset: 0; } }
+
+        /* Float after spin, but only after spin completes */
+        .welcome-logo-wrapper.floating .welcome-logo-rotate {
+            animation: spin-in 1.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards,
+                       float-logo 4s 1.4s ease-in-out infinite;
+        }
+        @keyframes float-logo {
+            0%,100% { transform: rotate(35deg) translateY(0); }
+            50%      { transform: rotate(35deg) translateY(-8px); }
+        }
+
+        /* Dust particles */
+        .dust-particle {
+            position: absolute; width: 4px; height: 4px;
+            border-radius: 50%; pointer-events: none;
+            opacity: 0;
+        }
+        .dust-particle.pop {
+            animation: dust-fly var(--dur) var(--delay) ease-out forwards;
+        }
+        @keyframes dust-fly {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.9; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* ── MESSAGES ── */
+        .msg-in {
+            animation: msg-appear 0.35s cubic-bezier(0.4,0,0.2,1) both;
+            opacity: 0;
+        }
+        @keyframes msg-appear {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Typing dots */
+        .typing-dots { display:flex; gap:4px; align-items:center; justify-content:center; padding:10px 0; }
+        .typing-dots span {
+            width:7px; height:7px; background:#d1d5db;
+            border-radius:50%; animation:tdot 1.2s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay:0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay:0.4s; }
+        @keyframes tdot { 0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-7px);} }
+
+        /* ── BUBBLE ── */
+        .bubble {
+            background: #f9f9f9;
+            border: 1px solid #efefef;
+            border-radius: 16px;
+            padding: 16px 22px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #1a1a1a;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: left;
+        }
+
+        /* inline code */
+        code {
+            font-family: 'Fira Code', monospace;
+            background: #f0f0f0;
+            padding: 1px 6px; border-radius: 4px;
+            font-size: 0.85em;
+        }
+
+        /* code line */
+        .code-line {
+            background: #18181b; border-radius: 10px;
+            padding: 13px 18px; font-family: 'Fira Code', monospace;
+            font-size: 0.85rem; color: #e4e4e7; margin: 8px 0;
+            line-height: 1.6; white-space: pre; overflow-x: auto;
+        }
+        /* full code */
+        .full-code {
+            background: #18181b; border-radius: 12px;
+            padding: 20px 22px; font-family: 'Fira Code', monospace;
+            font-size: 0.82rem; color: #e4e4e7; margin: 10px 0;
+            line-height: 1.9; white-space: pre; overflow-x: auto;
+            border-left: 3px solid #3f3f46;
+        }
+        .kw{color:#c084fc;} .fn{color:#60a5fa;} .va{color:#67e8f9;}
+        .nm{color:#fbbf24;} .op{color:#f87171;} .cm{color:#4b5563;font-style:italic;}
+
+        /* hbox */
+        .hbox {
+            border-radius: 10px; padding: 13px 16px; margin: 8px 0;
+            font-size: 0.875rem; line-height: 1.7;
+        }
+        .hbox.yellow { background:#fffbeb; border-left:3px solid #f59e0b; color:#44403c; }
+        .hbox.green  { background:#f0fdf4; border-left:3px solid #22c55e; color:#14532d; }
+        .hbox.red    { background:#fff1f2; border-left:3px solid #ef4444; color:#7f1d1d; }
+        .hbox.gray   { background:#f9fafb; border-left:3px solid #d1d5db; color:#374151; }
+        .hbox.blue   { background:#eff6ff; border-left:3px solid #3b82f6; color:#1e3a5f; }
+
+        /* word card */
+        .word-card {
+            background:#fff; border:1px solid #e5e7eb; border-radius:12px;
+            padding:13px 16px; margin:6px 0;
+            display:flex; gap:12px; align-items:flex-start;
+        }
+        .word-label {
+            font-family:'Fira Code',monospace; font-size:0.8rem; font-weight:500;
+            background:#18181b; color:#e4e4e7; padding:3px 10px;
+            border-radius:5px; white-space:nowrap; flex-shrink:0;
+        }
+        .word-desc { font-size:0.85rem; color:#52525b; line-height:1.65; }
+        .word-desc strong { color:#18181b; }
+
+        /* chips */
+        .chip-row { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; justify-content:center; }
+        .chip {
+            font-size:0.82rem; font-weight:500; padding:8px 16px;
+            border-radius:99px; border:1px solid #e5e7eb; background:#fff;
+            cursor:pointer; transition:all 0.15s; font-family:'Inter',sans-serif; color:#3f3f46;
+        }
+        .chip:hover { border-color:#000; color:#000; background:#fafafa; }
+        .chip.selected { border-color:#000; color:#000; background:#fafafa; opacity:1 !important; }
+        .chip:disabled { opacity:0.35; cursor:default; }
+
+        /* quiz */
+        .quiz-opt {
+            display:flex; align-items:flex-start; gap:10px;
+            padding:11px 14px; border:1px solid #e5e7eb; border-radius:10px;
+            cursor:pointer; font-size:0.875rem; color:#3f3f46; background:#fff;
+            transition:all 0.15s; text-align:left; font-family:'Inter',sans-serif; line-height:1.5;
+            width:100%; margin-bottom:7px;
+        }
+        .quiz-opt:hover:not(:disabled) { border-color:#000; color:#1a1a1a; }
+        .quiz-opt .ql {
+            width:22px; height:22px; border-radius:5px; flex-shrink:0;
+            display:flex; align-items:center; justify-content:center;
+            font-size:0.72rem; font-weight:700; background:#f4f4f5; color:#71717a;
+            transition:all 0.15s;
+        }
+        .quiz-opt:hover:not(:disabled) .ql { background:#1a1a1a; color:#fff; }
+        .quiz-opt.correct { border-color:#22c55e; background:#f0fdf4; color:#15803d; }
+        .quiz-opt.correct .ql { background:#22c55e; color:#fff; }
+        .quiz-opt.wrong { border-color:#ef4444; background:#fff1f2; color:#7f1d1d; }
+        .quiz-opt.wrong .ql { background:#ef4444; color:#fff; }
+        .quiz-feedback {
+            margin-top:10px; padding:12px 14px; border-radius:10px;
+            font-size:0.85rem; line-height:1.65; display:none;
+        }
+        .quiz-feedback.show { display:block; }
+        .quiz-feedback.correct { background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; }
+        .quiz-feedback.wrong   { background:#fff1f2; border:1px solid #fecaca; color:#991b1b; }
+
+        /* progress dots */
+        .pdot { width:7px; height:7px; border-radius:50%; background:#e5e7eb; transition:all 0.4s; }
+        .pdot.done   { background:#000; }
+        .pdot.active { background:#000; box-shadow:0 0 0 2px #e5e7eb; }
+
+        /* logo asterisk in header */
+        .logo-asterisk { transform:rotate(35deg); display:inline-flex; align-items:center; justify-content:center; }
+
+        #welcome-screen {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            height:100%; text-align:center; padding-bottom:5vh;
+        }
+        .hidden { display:none !important; }
+
+        #messages-list {
+            padding: 28px 24px 60px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+<!-- HEADER -->
+<header class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 flex-shrink-0">
+    <div class="flex items-center gap-2">
+        <div class="logo-asterisk w-6 h-6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="5" stroke-linecap="butt">
+                <line x1="12" y1="12" x2="12" y2="2"/>
+                <line x1="12" y1="12" x2="21.51" y2="8.91"/>
+                <line x1="12" y1="12" x2="17.88" y2="20.09"/>
+                <line x1="12" y1="12" x2="6.12" y2="20.09"/>
+                <line x1="12" y1="12" x2="2.49" y2="8.91"/>
+            </svg>
+        </div>
+        <h1 class="text-xl font-semibold tracking-tight">PrepMind</h1>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="flex gap-1.5" id="progress-dots"></div>
+        <span class="px-2 py-1 bg-gray-100 rounded text-[10px] uppercase tracking-wider text-black font-bold">Two Sum</span>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main id="chat-window" class="flex-1 overflow-y-auto" style="width:100%">
+
+    <!-- WELCOME -->
+    <div id="welcome-screen" class="px-6">
+        <div class="welcome-logo-wrapper" id="welcomeLogo">
+            <div class="welcome-logo-rotate">
+                <svg class="welcome-logo-svg" style="width:96px;height:96px" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4.5" stroke-linecap="butt">
+                    <line x1="12" y1="12" x2="12" y2="1.5"/>
+                    <line x1="12" y1="12" x2="22.01" y2="8.41"/>
+                    <line x1="12" y1="12" x2="18.38" y2="20.59"/>
+                    <line x1="12" y1="12" x2="5.62" y2="20.59"/>
+                    <line x1="12" y1="12" x2="1.99" y2="8.41"/>
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-semibold mb-2 tracking-tight">Two Sum — Learn by Thinking</h2>
+        <p class="text-gray-500 max-w-md leading-relaxed">
+            We'll build your problem-solving instincts from scratch.<br>
+            <span class="text-gray-400 text-sm">One idea at a time. At your own pace.</span>
+        </p>
+        <div class="mt-8">
+            <button onclick="startLesson()" class="bg-black text-white px-8 py-3 rounded-full text-sm font-medium hover:scale-105 transition-transform shadow-lg shadow-gray-200">
+                Start Learning
+            </button>
+        </div>
+    </div>
+
+    <!-- MESSAGES (centered column) -->
+    <div id="messages-list" class="hidden"></div>
+
+</main>
+
+<script>
+const chatWindow = document.getElementById('chat-window');
+const welcomeScr = document.getElementById('welcome-screen');
+const msgList    = document.getElementById('messages-list');
+const progDots   = document.getElementById('progress-dots');
+
+// ── DUST EXPLOSION ────────────────────────────────────────────
+function spawnDust() {
+    const wrapper = document.getElementById('welcomeLogo');
+    const cx = wrapper.offsetWidth / 2;
+    const cy = wrapper.offsetHeight / 2;
+    const colors = ['#000000','#555555','#888888','#aaaaaa','#cccccc'];
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'dust-particle';
+        const angle = (360 / count) * i + (Math.random() * 20 - 10);
+        const dist  = 28 + Math.random() * 36;
+        const rad   = angle * Math.PI / 180;
+        const tx    = Math.cos(rad) * dist;
+        const ty    = Math.sin(rad) * dist;
+        const dur   = (0.5 + Math.random() * 0.4).toFixed(2) + 's';
+        const delay = (Math.random() * 0.1).toFixed(2) + 's';
+        el.style.cssText = `
+            left:${cx}px; top:${cy}px;
+            background:${colors[i % colors.length]};
+            --tx:${tx}px; --ty:${ty}px;
+            --dur:${dur}; --delay:${delay};
+            width:${2 + Math.random() * 3}px;
+            height:${2 + Math.random() * 3}px;
+        `;
+        wrapper.appendChild(el);
+        // trigger reflow then add class
+        requestAnimationFrame(() => { el.classList.add('pop'); });
+        setTimeout(() => el.remove(), 800);
+    }
+    // After dust, add floating animation class
+    wrapper.classList.add('floating');
+}
+// Trigger dust at end of spin animation (1.2s)
+setTimeout(spawnDust, 1200);
+
+// ── PHASES ────────────────────────────────────────────────────
+const PHASES = ['What is it?','Example','Think it','Logic','Code','Each word','Full Code','Quiz'];
+let phase = 0;
+
+function buildDots() {
+    PHASES.forEach((_,i) => {
+        const d = document.createElement('div');
+        d.className = 'pdot'; d.id = 'pd'+i;
+        progDots.appendChild(d);
+    });
+}
+function setPhase(n) {
+    phase = n;
+    PHASES.forEach((_,i) => {
+        const d = document.getElementById('pd'+i);
+        if (!d) return;
+        d.className = i < n ? 'pdot done' : i === n ? 'pdot active' : 'pdot';
+    });
+}
+
+// ── RENDERING ─────────────────────────────────────────────────
+function addMsg(fn, onDone, delayMs) {
+    const tw = document.createElement('div');
+    tw.className = 'msg-in';
+    tw.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+    msgList.appendChild(tw);
+    scroll();
+    const d = delayMs !== undefined ? delayMs : 650 + Math.random()*400;
+    setTimeout(() => {
+        tw.remove();
+        const row = document.createElement('div');
+        row.className = 'msg-in';
+        fn(row);
+        msgList.appendChild(row);
+        scroll();
+        if (onDone) setTimeout(onDone, 80);
+    }, d);
+}
+
+function B(html) { return `<div class="bubble">${html}</div>`; }
+
+function mkChips(pairs) {
+    // pairs: [{label, fn}]
+    const row = document.createElement('div');
+    row.className = 'chip-row';
+    pairs.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'chip';
+        btn.textContent = p.label;
+        btn.onclick = () => {
+            row.querySelectorAll('.chip').forEach(c => { c.disabled = true; });
+            btn.classList.add('selected');
+            p.fn();
+        };
+        row.appendChild(btn);
+    });
+    return row;
+}
+
+function scroll() {
+    setTimeout(() => chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' }), 60);
+}
+
+// ── START ─────────────────────────────────────────────────────
+function startLesson() {
+    welcomeScr.classList.add('hidden');
+    msgList.classList.remove('hidden');
+    buildDots();
+    setPhase(0);
+    p0_what();
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 0 — What is Two Sum?
+// ═════════════════════════════════════════════════════════════
+function p0_what() {
+    setPhase(0);
+    addMsg(row => {
+        row.innerHTML = B(`Hey! 👋 Let's learn <strong>Two Sum</strong> — a classic problem that teaches you how to think smartly about lists of numbers.`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = B(`<strong>The problem in one line:</strong><br><br>
+            Given a list of numbers and a target, find the <em>two numbers</em> that add up to that target — and return their <strong>positions</strong> in the list.`);
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = B(`Nothing more, nothing less. No math tricks, no memorisation. Just logical thinking. 🎯`);
+                row.appendChild(mkChips([
+                    { label: 'Got it! Show me an example →', fn: () => { setPhase(1); p1_example(); } },
+                    { label: 'What do you mean by positions?', fn: p0_positions_clarify }
+                ]));
+            });
+        });
+    });
+}
+
+function p0_positions_clarify() {
+    addMsg(row => {
+        row.innerHTML = B(`Good question! Every item in a list has a <strong>position number</strong>, called an <strong>index</strong>.<br><br>
+        In Python, positions start from <strong>0</strong> — not 1. So in the list <code>[10, 20, 30]</code>:<br><br>
+        &nbsp;&nbsp;Position <strong>0</strong> → 10<br>
+        &nbsp;&nbsp;Position <strong>1</strong> → 20<br>
+        &nbsp;&nbsp;Position <strong>2</strong> → 30<br><br>
+        When we say "return positions", we mean: tell us <em>where</em> the two numbers live in the list.`);
+        row.appendChild(mkChips([
+            { label: 'Makes sense! Show me an example →', fn: () => { setPhase(1); p1_example(); } }
+        ]));
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 1 — Concrete example
+// ═════════════════════════════════════════════════════════════
+function p1_example() {
+    setPhase(1);
+    addMsg(row => {
+        row.innerHTML = B(`Let's make it real. Here's your list and your target:`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = `
+                <div class="code-line">nums   = [2, 7, 11, 15]
+target = 9</div>
+                <div class="hbox yellow">Your job: find two numbers from <code>nums</code> that add up to <strong>9</strong>. Then tell me their positions.</div>`;
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = B(`Look at the list. Can you spot the pair? 🤔`);
+                row.appendChild(mkChips([
+                    { label: '2 + 7 = 9 ✓', fn: () => p1_correct() },
+                    { label: '11 + 15?',     fn: () => p1_wrong() },
+                    { label: 'Give me a hint', fn: () => p1_hint() }
+                ]));
+            });
+        });
+    });
+}
+
+function p1_wrong() {
+    addMsg(row => {
+        row.innerHTML = B(`Not quite! 11 + 15 = 26, not 9. Try the smaller numbers — look at 2 and 7. What's 2 + 7?`);
+        row.appendChild(mkChips([
+            { label: '2 + 7 = 9! 🎉', fn: () => p1_correct() }
+        ]));
+    });
+}
+
+function p1_hint() {
+    addMsg(row => {
+        row.innerHTML = B(`Hint: the target is 9. Look at the first number: <strong>2</strong>. What would you need to add to 2 to get 9?`);
+        row.appendChild(mkChips([
+            { label: '7! So 2 + 7 = 9 🎉', fn: () => p1_correct() }
+        ]));
+    });
+}
+
+function p1_correct() {
+    addMsg(row => {
+        row.innerHTML = B(`✅ Yes! <strong>2 + 7 = 9</strong>. Perfect.`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = B(`Now — what are their <em>positions</em>?<br><br>
+            <code>nums = [<strong>2</strong>, <strong>7</strong>, 11, 15]</code><br><br>
+            &nbsp;&nbsp;<code>2</code> is at position <strong>0</strong><br>
+            &nbsp;&nbsp;<code>7</code> is at position <strong>1</strong><br><br>
+            So the answer is: <code>[0, 1]</code> 🎯`);
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = B(`That's all the problem is asking. Find the pair, return their positions. Clear so far?`);
+                row.appendChild(mkChips([
+                    { label: 'Yes, let\'s think about how to solve it →', fn: () => { setPhase(2); p2_think(); } },
+                    { label: 'Why does counting start at 0?', fn: p1_why_zero }
+                ]));
+            });
+        });
+    });
+}
+
+function p1_why_zero() {
+    addMsg(row => {
+        row.innerHTML = B(`Great curiosity! Computers count from 0 because it relates to how memory addresses work internally. It's a universal convention in almost every programming language.<br><br>
+        Think of it like floors in a building — some countries label the ground floor as <strong>Floor 0</strong>, not Floor 1. The first item you see is Floor 0.`);
+        row.appendChild(mkChips([
+            { label: 'Got it → How do we solve it?', fn: () => { setPhase(2); p2_think(); } }
+        ]));
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 2 — Think: what's your instinct?
+// ═════════════════════════════════════════════════════════════
+function p2_think() {
+    setPhase(2);
+    addMsg(row => {
+        row.innerHTML = B(`Good. Now — before we write any code — let's <strong>think</strong>. 🧠<br><br>
+        Imagine someone hands you <code>[2, 7, 11, 15]</code> on a piece of paper and says "find two that add to 9." What would you <em>naturally</em> do?`);
+        row.appendChild(mkChips([
+            { label: 'Try every pair one by one', fn: p2_brute },
+            { label: 'Scan the list and look for the match', fn: p2_scan },
+            { label: 'I\'m not sure', fn: p2_notsure }
+        ]));
+    });
+}
+
+function p2_brute() {
+    addMsg(row => {
+        row.innerHTML = B(`Exactly! That's the most natural instinct — try every combination:<br><br>
+        2+7? → 9 ✅ Found it!<br><br>
+        If that hadn't worked, you'd try 2+11, 2+15, then 7+11, 7+15, then 11+15...<br><br>
+        This is called <strong>brute force</strong> — checking every possible pair until you find the answer.`);
+    }, () => { p2_brute_problem(); });
+}
+
+function p2_scan() {
+    addMsg(row => {
+        row.innerHTML = B(`Smart! You're doing something interesting — as you look at <strong>7</strong>, your brain immediately asks: "what do I need alongside 7 to get 9? I need <strong>2</strong>. Have I seen a 2?" And you check back in your mind.<br><br>
+        That's actually the <em>smart algorithm</em> we'll build. But let's first understand why the naive way is too slow.`);
+    }, () => { p2_brute_problem(); });
+}
+
+function p2_notsure() {
+    addMsg(row => {
+        row.innerHTML = B(`No worries! The most natural approach is: pick the first number, check it against every other number. Then pick the second number, check against all remaining ones... until you find a pair that sums to target.<br><br>
+        It works — but it can be slow. Let's see why.`);
+    }, () => { p2_brute_problem(); });
+}
+
+function p2_brute_problem() {
+    addMsg(row => {
+        row.innerHTML = B(`Here's the issue with trying every pair:<br><br>
+        For a list of <strong>4 numbers</strong> → you check at most 6 pairs. Fine.<br>
+        For a list of <strong>1,000 numbers</strong> → you check ~500,000 pairs. Slow.<br>
+        For <strong>1,000,000 numbers</strong> → ~500 billion pairs. 💀<br><br>
+        This is called <strong>O(n²)</strong> — it gets <em>quadratically</em> worse as the list grows.`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = B(`So we need a smarter approach. One that solves it in a <em>single pass</em> through the list. Ready to see the key idea?`);
+            row.appendChild(mkChips([
+                { label: 'Yes! What\'s the smart way? →', fn: () => { setPhase(3); p3_insight(); } }
+            ]));
+        });
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 3 — The core insight
+// ═════════════════════════════════════════════════════════════
+function p3_insight() {
+    setPhase(3);
+    addMsg(row => {
+        row.innerHTML = B(`Here's the insight that changes everything:<br><br>
+        Instead of asking <em>"do these two numbers add up?"</em><br>
+        Ask: <em>"have I already seen the number I <strong>need</strong>?"</em>`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = B(`When you see the number <strong>7</strong>, immediately calculate what you'd need:<br><br>
+            <code>need = 9 − 7 = <strong>2</strong></code><br><br>
+            Then ask: <em>"Have I seen a 2 earlier in the list?"</em> If yes → done!`);
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = B(`To answer that instantly, you keep a <strong>notebook</strong> 📒 — a dictionary that records every number you've seen, along with where you saw it.<br><br>
+                As you pass through the list <strong>once</strong>, you check the notebook and update it. One loop. Done.`);
+            }, () => {
+                addMsg(row => {
+                    row.innerHTML = `<div class="hbox green">
+                        This reduces the problem from <strong>O(n²)</strong> → <strong>O(n)</strong>.<br>
+                        Instead of checking every pair, you do one pass with instant lookups. For 1,000,000 numbers: 1 million steps instead of 500 billion.
+                    </div>`;
+                    row.appendChild(mkChips([
+                        { label: 'I see it! Show me the code →', fn: () => { setPhase(4); p4_code(); } },
+                        { label: 'Explain that notebook idea more', fn: p3_notebook_deep }
+                    ]));
+                });
+            });
+        });
+    });
+}
+
+function p3_notebook_deep() {
+    addMsg(row => {
+        row.innerHTML = B(`Great — let's go deeper on the notebook.<br><br>
+        A Python <strong>dictionary</strong> (<code>{}</code>) is like a two-column table:<br><br>
+        &nbsp;&nbsp;Column 1 (key): the number you saw<br>
+        &nbsp;&nbsp;Column 2 (value): its position in the list<br><br>
+        After seeing <code>2</code> at position <code>0</code>, the notebook says: <code>{ 2: 0 }</code><br>
+        After seeing <code>7</code> at position <code>1</code>, before adding it, you ask:<br>
+        "Is <code>9 − 7 = 2</code> in this notebook?" → Yes! It's at position 0.<br><br>
+        So you return <code>[0, 1]</code> immediately — without ever looking at 11 or 15.`);
+        row.appendChild(mkChips([
+            { label: 'Crystal clear → Show me the code', fn: () => { setPhase(4); p4_code(); } }
+        ]));
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 4 — Code, line by line
+// ═════════════════════════════════════════════════════════════
+const CODE_LINES = [
+    {
+        code: `<span class="kw">def</span> <span class="fn">two_sum</span>(<span class="va">nums</span>, <span class="va">target</span>):`,
+        explain: `We're <strong>defining a function</strong> called <code>two_sum</code>.<br><br>
+        A function is a reusable block of code. You give it inputs, it does a job, and gives back an output.<br><br>
+        Inputs here: <code>nums</code> (the list of numbers) and <code>target</code> (the sum we want to reach).`,
+        deeper: `Think of a function like a vending machine. You put in coins (<em>inputs</em>), press a button, and get a snack (<em>output</em>). The word <code>def</code> is how you build one of those machines in Python.`
+    },
+    {
+        code: `    <span class="va">seen</span> <span class="op">=</span> {}`,
+        explain: `We create an <strong>empty dictionary</strong> called <code>seen</code>. This is our notebook.<br><br>
+        <code>{}</code> means empty — no entries yet. As we walk through the list, we'll fill it in: <code>{ number: its_position }</code>.`,
+        deeper: `A Python dictionary stores pairs: a <em>key</em> and a <em>value</em>. Like a real dictionary: the word is the key, the definition is the value. Here: the number is the key, its index is the value. Lookups in a dictionary are instant — O(1) — no matter how big it gets.`
+    },
+    {
+        code: `    <span class="kw">for</span> <span class="va">i</span>, <span class="va">num</span> <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="va">nums</span>):`,
+        explain: `This starts a loop that goes through every item in <code>nums</code>.<br><br>
+        <code>enumerate(nums)</code> gives us two things at each step: the <strong>position</strong> (<code>i</code>) and the <strong>number itself</strong> (<code>num</code>).<br><br>
+        For <code>[2, 7, 11, 15]</code>: first step → i=0, num=2. Second → i=1, num=7. And so on.`,
+        deeper: `Without <code>enumerate</code>, a regular <code>for num in nums</code> would only give you the value. You'd have to track the position separately with a counter. <code>enumerate</code> is a Python shortcut that bundles both together cleanly.`
+    },
+    {
+        code: `        <span class="va">complement</span> <span class="op">=</span> <span class="va">target</span> <span class="op">-</span> <span class="va">num</span>`,
+        explain: `For the current number, we calculate its <strong>complement</strong> — the number we'd need to pair with it to hit the target.<br><br>
+        If target is 9 and num is 7: <code>complement = 9 − 7 = 2</code>.<br><br>
+        We're asking: <em>"What's my missing piece?"</em>`,
+        deeper: `This is the mathematical core of the algorithm. Every number has exactly one complement for a given target. By computing it, we turn "find a pair" into "check if one specific number exists" — which is a much easier question to answer.`
+    },
+    {
+        code: `        <span class="kw">if</span> <span class="va">complement</span> <span class="kw">in</span> <span class="va">seen</span>:`,
+        explain: `Check the notebook! <code>in</code> tests whether a key exists in the dictionary.<br><br>
+        If we're at num=7 and complement=2, this asks: "Is 2 already in <code>seen</code>?"<br><br>
+        This lookup is <strong>instant</strong> — O(1) — it doesn't slow down as the dictionary grows.`,
+        deeper: `Under the hood, Python dictionaries use a <em>hash table</em>. When you store a key, Python converts it to a number (a "hash") and uses that to directly jump to where the value is stored. No scanning, no searching — direct access.`
+    },
+    {
+        code: `            <span class="kw">return</span> [<span class="va">seen</span>[<span class="va">complement</span>], <span class="va">i</span>]`,
+        explain: `If the complement was in our notebook, we found our pair!<br><br>
+        <code>seen[complement]</code> retrieves the <em>stored position</em> of the complement.<br>
+        <code>i</code> is the current position.<br><br>
+        We return both as a list: <code>[position_of_complement, current_position]</code>.`,
+        deeper: `<code>return</code> immediately stops the function and sends back the result. No more looping, no more work. This is why the algorithm can exit as early as the second item — the moment a match is found, it's done.`
+    },
+    {
+        code: `        <span class="va">seen</span>[<span class="va">num</span>] <span class="op">=</span> <span class="va">i</span>`,
+        explain: `If no match yet, <strong>write this number in the notebook</strong>.<br><br>
+        <code>seen[num] = i</code> stores the current number as the key and its position as the value.<br><br>
+        Future numbers can now look it up as their complement instantly. This single line is what makes the whole algorithm work.`,
+        deeper: `Notice the order: we <em>first</em> check the notebook, <em>then</em> write. This is intentional — it prevents pairing a number with itself. If we wrote first, the number might find itself as its own complement.`
+    }
+];
+
+let codeStep = 0;
+
+function p4_code() {
+    setPhase(4);
+    codeStep = 0;
+    addMsg(row => {
+        row.innerHTML = B(`Now let's build the code. One line at a time — no rushing. Each line follows directly from the logic we just discussed.`);
+    }, () => { p4_show_line(); });
+}
+
+function p4_show_line() {
+    if (codeStep >= CODE_LINES.length) { setPhase(5); p5_words(); return; }
+    const line = CODE_LINES[codeStep];
+    addMsg(row => {
+        row.innerHTML = `
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#9ca3af;margin-bottom:6px;text-align:center;">
+                Line ${codeStep + 1} of ${CODE_LINES.length}
+            </div>
+            <div class="code-line">${line.code}</div>
+            <div class="bubble" style="margin-top:8px;">${line.explain}</div>
+        `;
+        row.appendChild(mkChips([
+            { label: 'Got it →', fn: () => { codeStep++; p4_show_line(); } },
+            { label: 'Go deeper on this', fn: () => p4_deeper(line) }
+        ]));
+    });
+}
+
+function p4_deeper(line) {
+    addMsg(row => {
+        row.innerHTML = `<div class="hbox blue">${line.deeper}</div>`;
+        row.appendChild(mkChips([
+            { label: 'Clear! Next line →', fn: () => { codeStep++; p4_show_line(); } }
+        ]));
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 5 — Every keyword explained
+// ═════════════════════════════════════════════════════════════
+const WORDS = [
+    { word: 'def',         color: '#c084fc', desc: `Short for <strong>define</strong>. Tells Python: "I'm creating a function." Every custom function starts with <code>def</code>, a name, and parentheses for inputs.` },
+    { word: 'two_sum',     color: '#60a5fa', desc: `The <strong>name</strong> of our function. Python function names use underscores instead of spaces. We chose this name because it describes exactly what the function does.` },
+    { word: 'nums',        color: '#67e8f9', desc: `A <strong>parameter</strong> — a placeholder for the list of numbers. When you call <code>two_sum([2,7,11,15], 9)</code>, Python replaces <code>nums</code> with <code>[2,7,11,15]</code> inside the function.` },
+    { word: 'target',      color: '#67e8f9', desc: `Another <strong>parameter</strong> — the sum we want to reach. When calling, <code>9</code> flows in here. Parameters make functions reusable: call it with any list and any target.` },
+    { word: 'seen = {}',   color: '#e4e4e7', desc: `<code>{}</code> creates an empty <strong>dictionary</strong>. We name it <code>seen</code> because it records numbers we've already visited. Format: <code>{ number: position }</code>, e.g. <code>{ 2: 0, 7: 1 }</code>.` },
+    { word: 'enumerate',   color: '#60a5fa', desc: `A Python built-in that wraps a list and gives you <strong>both the index and the value</strong> at each step. Without it, you'd only get the value in a <code>for</code> loop. Think of it as "give me the item <em>and</em> its position."` },
+    { word: 'complement',  color: '#67e8f9', desc: `A variable we create to store <strong>what we're looking for</strong>. <code>target - num</code> answers: "if I have this number, what other number completes the sum?" It's the missing piece of the puzzle.` },
+    { word: 'in',          color: '#c084fc', desc: `Python's <code>in</code> keyword checks <strong>membership</strong>. <code>complement in seen</code> asks: "is this key in the dictionary?" It returns True or False. For dictionaries, this check is instant regardless of size.` },
+    { word: 'return',      color: '#c084fc', desc: `<strong>Sends a value back</strong> from the function and immediately stops it. The moment we find our pair, we <code>return</code> the positions — no more looping, no wasted work.` },
+    { word: 'seen[num]=i', color: '#e4e4e7', desc: `<strong>Writes to the dictionary</strong>. The number is the key, its position is the value. This line "saves" the current number so future iterations can look it up as a potential complement.` }
+];
+
+let wordIdx = 0;
+
+function p5_words() {
+    setPhase(5);
+    wordIdx = 0;
+    addMsg(row => {
+        row.innerHTML = B(`You've seen every line! Now let's make sure every <em>word</em> makes sense. I'll go keyword by keyword — no skipping.`);
+    }, () => { p5_show_word(); });
+}
+
+function p5_show_word() {
+    if (wordIdx >= WORDS.length) { setPhase(6); p6_full_code(); return; }
+    const w = WORDS[wordIdx];
+    addMsg(row => {
+        row.innerHTML = `
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#9ca3af;margin-bottom:6px;text-align:center;">
+                Keyword ${wordIdx + 1} of ${WORDS.length}
+            </div>
+            <div class="word-card">
+                <span class="word-label" style="color:${w.color}">${w.word}</span>
+                <span class="word-desc">${w.desc}</span>
+            </div>`;
+        row.appendChild(mkChips([
+            { label: 'Got it →', fn: () => { wordIdx++; p5_show_word(); } }
+        ]));
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 6 — Full code reveal
+// ═════════════════════════════════════════════════════════════
+function p6_full_code() {
+    setPhase(6);
+    addMsg(row => {
+        row.innerHTML = B(`You've understood every piece. Here's the <strong>complete solution</strong> — read it top to bottom and see how every line connects. 🏆`);
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = `<div class="full-code"><span class="kw">def</span> <span class="fn">two_sum</span>(<span class="va">nums</span>, <span class="va">target</span>):
+    <span class="va">seen</span> <span class="op">=</span> {}                          <span class="cm"># notebook: number → position</span>
+
+    <span class="kw">for</span> <span class="va">i</span>, <span class="va">num</span> <span class="kw">in</span> <span class="fn">enumerate</span>(<span class="va">nums</span>):      <span class="cm"># walk through list</span>
+        <span class="va">complement</span> <span class="op">=</span> <span class="va">target</span> <span class="op">-</span> <span class="va">num</span>         <span class="cm"># what do I need?</span>
+
+        <span class="kw">if</span> <span class="va">complement</span> <span class="kw">in</span> <span class="va">seen</span>:            <span class="cm"># check notebook</span>
+            <span class="kw">return</span> [<span class="va">seen</span>[<span class="va">complement</span>], <span class="va">i</span>]    <span class="cm"># found it!</span>
+
+        <span class="va">seen</span>[<span class="va">num</span>] <span class="op">=</span> <span class="va">i</span>                    <span class="cm"># write it down</span>
+
+    <span class="kw">return</span> []                            <span class="cm"># no pair found</span></div>`;
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = `<div class="hbox green">
+                    <strong>Time complexity: O(n)</strong> — one pass through the list.<br>
+                    <strong>Space complexity: O(n)</strong> — the notebook stores up to n entries.<br>
+                    We trade a little memory for a massive speed win.
+                </div>`;
+                row.appendChild(mkChips([
+                    { label: 'Test my understanding! 🧠', fn: () => { setPhase(7); p7_quiz(); } }
+                ]));
+            });
+        });
+    });
+}
+
+// ═════════════════════════════════════════════════════════════
+//  PHASE 7 — Quiz (3 questions, fully functional, no repeats)
+// ═════════════════════════════════════════════════════════════
+let quizQ = 0;
+const QUIZ = [
+    {
+        q: `Look at this list: <code>nums = [3, 5, 4, 2]</code>, <code>target = 6</code>.<br>Which two numbers add up to 6?`,
+        opts: [
+            { text: '3 + 3 = 6', correct: false, feedback: `3 + 3 would work mathematically, but we only have <em>one</em> 3 in the list — you can't use the same element twice.` },
+            { text: '4 + 2 = 6 ✓', correct: true, feedback: `Correct! 4 is at position 2, and 2 is at position 3. So the answer is <code>[2, 3]</code>.` },
+            { text: '5 + 1 = 6', correct: false, feedback: `There's no <code>1</code> in the list <code>[3, 5, 4, 2]</code>. Always check against the actual numbers available.` },
+            { text: '3 + 4 = 7', correct: false, feedback: `3 + 4 = 7, not 6. Re-check the target.` }
+        ]
+    },
+    {
+        q: `When the code runs <code>complement = target - num</code> with target=6 and num=4, what is <code>complement</code>?`,
+        opts: [
+            { text: '10', correct: false, feedback: `That would be target <em>plus</em> num (6 + 4). We subtract: target <em>minus</em> num.` },
+            { text: '2 ✓', correct: true, feedback: `Correct! 6 − 4 = 2. So we're now asking: "Have I seen a 2 before?" If yes, we've found our pair.` },
+            { text: '4', correct: false, feedback: `That's just <code>num</code> itself, not the complement. The complement is what you'd <em>need</em> to add to num to reach the target.` },
+            { text: '6', correct: false, feedback: `That's the target, not the complement. We need target <em>minus</em> the current number.` }
+        ]
+    },
+    {
+        q: `After the loop runs for the first iteration (num=3, i=0), what does the <code>seen</code> dictionary contain?`,
+        opts: [
+            { text: '{ 6: 0 }', correct: false, feedback: `We store the <em>number itself</em> as the key, not the target. The complement (6−3=3) isn't found, so we write the number 3 at index 0.` },
+            { text: '{ 3: 1 }', correct: false, feedback: `The value (1) is wrong. We store the <em>index</em>, which is 0 for the first element — not 1.` },
+            { text: '{ 3: 0 } ✓', correct: true, feedback: `Correct! We store <code>seen[num] = i</code> → <code>seen[3] = 0</code>. The number 3 is recorded at position 0, ready to be looked up as a complement by future numbers.` },
+            { text: '{ }', correct: false, feedback: `The dictionary starts empty, but after the first iteration, we write <code>seen[3] = 0</code> — the number and its index.` }
+        ]
+    }
+];
+
+function p7_quiz() {
+    setPhase(7);
+    quizQ = 0;
+    addMsg(row => {
+        row.innerHTML = B(`Time to test yourself! 3 quick questions. No pressure — each wrong answer teaches you something too. 💪`);
+    }, () => { p7_show_q(); });
+}
+
+function p7_show_q() {
+    if (quizQ >= QUIZ.length) { p7_done(); return; }
+    const q = QUIZ[quizQ];
+    addMsg(row => {
+        const qNum = quizQ + 1;
+        let html = `
+            <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#9ca3af;margin-bottom:10px;text-align:center;">
+                Question ${qNum} of ${QUIZ.length}
+            </div>
+            <div class="bubble" style="margin-bottom:10px">${q.q}</div>
+            <div id="quiz-opts-${qNum}">`;
+        q.opts.forEach((opt, oi) => {
+            html += `<button class="quiz-opt" id="qopt-${qNum}-${oi}" onclick="quizAnswer(${qNum},${oi},${opt.correct},'${encodeURIComponent(opt.feedback)}')">
+                <span class="ql">${String.fromCharCode(65+oi)}</span>
+                <span>${opt.text}</span>
+            </button>`;
+        });
+        html += `</div><div class="quiz-feedback" id="qfb-${qNum}"></div>`;
+        row.innerHTML = html;
+    });
+}
+
+function quizAnswer(qNum, chosenIdx, correct, encodedFeedback) {
+    const feedback = decodeURIComponent(encodedFeedback);
+    // Disable all options
+    document.querySelectorAll(`#quiz-opts-${qNum} .quiz-opt`).forEach((btn, i) => {
+        btn.disabled = true;
+        if (i === chosenIdx) btn.classList.add(correct ? 'correct' : 'wrong');
+        // Reveal correct answer if user was wrong
+        if (!correct && QUIZ[quizQ].opts[i].correct) btn.classList.add('correct');
+    });
+    const fb = document.getElementById('qfb-' + qNum);
+    fb.className = 'quiz-feedback show ' + (correct ? 'correct' : 'wrong');
+    fb.innerHTML = (correct ? '✓ ' : '✗ ') + feedback;
+    scroll();
+
+    // After short pause, move to next question
+    setTimeout(() => {
+        quizQ++;
+        p7_show_q();
+    }, correct ? 1400 : 2000);
+}
+
+function p7_done() {
+    addMsg(row => {
+        row.innerHTML = `<div class="hbox green" style="text-align:center">
+            <div style="font-size:1.8rem;margin-bottom:8px">🏆</div>
+            <strong>You've completed the Two Sum module!</strong><br><br>
+            You understand not just the code, but <em>why</em> every decision was made. That's what real problem-solving looks like.
+        </div>`;
+    }, () => {
+        addMsg(row => {
+            row.innerHTML = B(`<strong>What you learned today:</strong><br><br>
+            • How to understand a problem before coding<br>
+            • Why brute force is O(n²) and how to spot it<br>
+            • The complement trick that makes this O(n)<br>
+            • How dictionaries give O(1) lookups<br>
+            • Every line and keyword of the solution`);
+        }, () => {
+            addMsg(row => {
+                row.innerHTML = B(`<strong>Try this on your own:</strong> <code>nums = [1, 4, 6, 8]</code>, <code>target = 10</code>. Trace through the algorithm mentally — what does <code>seen</code> look like at each step? What gets returned?`);
+            });
+        });
+    });
+}
+</script>
+</body>
+</html>

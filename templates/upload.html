@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepMind | AI Interview Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #fff; color: #1a1a1a; overflow: hidden; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+        *::-webkit-scrollbar { display: none; }
+
+        /* ── WELCOME LOGO ── */
+        .welcome-logo-wrapper {
+            width: 96px; height: 96px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .welcome-logo-rotate {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            animation: spin-in 1.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
+            transform-origin: center;
+        }
+        @keyframes spin-in {
+            0%   { transform: scale(0.4) rotate(-45deg); opacity: 0; }
+            70%  { transform: scale(1.08) rotate(38deg); opacity: 1; }
+            85%  { transform: scale(0.96) rotate(33deg); }
+            100% { transform: scale(1) rotate(35deg); opacity: 1; }
+        }
+        .welcome-logo-svg line {
+            stroke-dasharray: 20; stroke-dashoffset: 20;
+            animation: line-draw 0.6s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .welcome-logo-svg line:nth-child(1) { animation-delay: 0.15s; }
+        .welcome-logo-svg line:nth-child(2) { animation-delay: 0.25s; }
+        .welcome-logo-svg line:nth-child(3) { animation-delay: 0.35s; }
+        .welcome-logo-svg line:nth-child(4) { animation-delay: 0.45s; }
+        .welcome-logo-svg line:nth-child(5) { animation-delay: 0.55s; }
+        @keyframes line-draw { to { stroke-dashoffset: 0; } }
+
+        /* Float after spin */
+        .welcome-logo-wrapper.floating .welcome-logo-rotate {
+            animation: spin-in 1.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards,
+                       float-logo 4s 1.4s ease-in-out infinite;
+        }
+        @keyframes float-logo {
+            0%,100% { transform: rotate(35deg) translateY(0); }
+            50%      { transform: rotate(35deg) translateY(-8px); }
+        }
+
+        /* Dust particles */
+        .dust-particle {
+            position: absolute; width: 4px; height: 4px;
+            border-radius: 50%; pointer-events: none; opacity: 0;
+        }
+        .dust-particle.pop {
+            animation: dust-fly var(--dur) var(--delay) ease-out forwards;
+        }
+        @keyframes dust-fly {
+            0%   { transform: translate(0,0) scale(1); opacity: 0.9; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+
+        /* ── MESSAGES ── */
+        .msg-in {
+            animation: msg-appear 0.35s cubic-bezier(0.4,0,0.2,1) both;
+            opacity: 0;
+        }
+        @keyframes msg-appear {
+            from { opacity:0; transform:translateY(10px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* Typing dots */
+        .typing-dots { display:flex; gap:4px; align-items:center; justify-content:center; padding:10px 0; }
+        .typing-dots span {
+            width:8px; height:8px; background:#d1d5db;
+            border-radius:50%; animation:tdot 1.2s infinite;
+        }
+        .typing-dots span:nth-child(2) { animation-delay:0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay:0.4s; }
+        @keyframes tdot { 0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-7px);} }
+
+        /* ── HEADER LOGO ── */
+        .logo-asterisk { transform:rotate(35deg); display:inline-flex; align-items:center; justify-content:center; }
+        /* Header asterisk line-draw on page load */
+        .header-logo-svg line {
+            stroke-dasharray: 20; stroke-dashoffset: 20;
+            animation: line-draw 0.5s cubic-bezier(0.4,0,0.2,1) forwards;
+        }
+        .header-logo-svg line:nth-child(1) { animation-delay: 0.05s; }
+        .header-logo-svg line:nth-child(2) { animation-delay: 0.12s; }
+        .header-logo-svg line:nth-child(3) { animation-delay: 0.19s; }
+        .header-logo-svg line:nth-child(4) { animation-delay: 0.26s; }
+        .header-logo-svg line:nth-child(5) { animation-delay: 0.33s; }
+
+        /* fade-in for page elements */
+        .fade-in { animation: fadeIn 0.4s ease both; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Staggered page entrance */
+        .enter-1 { animation: fadeIn 0.5s 0.1s ease both; }
+        .enter-2 { animation: fadeIn 0.5s 0.2s ease both; }
+        .enter-3 { animation: fadeIn 0.5s 0.35s ease both; }
+        .enter-4 { animation: fadeIn 0.5s 0.5s ease both; }
+
+        /* hbox */
+        .hbox {
+            border-radius: 10px; padding: 13px 16px; margin: 6px 0;
+            font-size: 0.875rem; line-height: 1.7;
+        }
+        .hbox.green  { background:#f0fdf4; border-left:3px solid #22c55e; color:#14532d; }
+        .hbox.gray   { background:#f9fafb; border-left:3px solid #d1d5db; color:#374151; }
+
+        /* Upload area */
+        .upload-zone {
+            border: 2px dashed #e5e7eb;
+            border-radius: 16px;
+            padding: 40px 32px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: #000;
+            background: #fafafa;
+        }
+        .upload-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        }
+
+        /* upload icon bounce on hover */
+        .upload-zone:hover .upload-icon { animation: bounce-up 0.4s ease; }
+        @keyframes bounce-up {
+            0%,100% { transform: translateY(0); }
+            40%     { transform: translateY(-6px); }
+            70%     { transform: translateY(-2px); }
+        }
+
+        /* file selected checkmark pop */
+        .check-pop { animation: check-appear 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+        @keyframes check-appear {
+            0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+        }
+
+        /* Skill chips */
+        .skill-chip {
+            font-size: 0.75rem; font-weight: 500; padding: 4px 12px;
+            border-radius: 99px; border: 1px solid #e5e7eb;
+            background: #fff; color: #3f3f46; display: inline-block;
+            animation: chip-pop 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
+        }
+        @keyframes chip-pop {
+            from { transform: scale(0.7); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+
+        /* Loading overlay */
+        #loading-overlay {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.97);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 50; display: none;
+            animation: fadeIn 0.2s ease both;
+        }
+
+        /* Loading logo pulse spin */
+        .loading-logo-spin {
+            animation: loading-spin 1.8s linear infinite;
+            transform-origin: center;
+            display: flex; align-items: center; justify-content: center;
+        }
+        @keyframes loading-spin {
+            from { transform: rotate(35deg); }
+            to   { transform: rotate(395deg); }
+        }
+
+        .hidden { display:none !important; }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+<!-- HEADER -->
+<header class="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10 flex-shrink-0">
+    <div class="flex items-center gap-2">
+        <div class="logo-asterisk w-6 h-6">
+            <svg class="header-logo-svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="5" stroke-linecap="butt">
+                <line x1="12" y1="12" x2="12" y2="2"/>
+                <line x1="12" y1="12" x2="21.51" y2="8.91"/>
+                <line x1="12" y1="12" x2="17.88" y2="20.09"/>
+                <line x1="12" y1="12" x2="6.12" y2="20.09"/>
+                <line x1="12" y1="12" x2="2.49" y2="8.91"/>
+            </svg>
+        </div>
+        <h1 class="text-xl font-semibold tracking-tight" style="animation:fadeIn 0.5s 0.4s ease both;opacity:0">PrepMind</h1>
+    </div>
+    <span class="px-2 py-1 bg-gray-100 rounded text-[10px] uppercase tracking-wider text-black font-bold" style="animation:fadeIn 0.5s 0.5s ease both;opacity:0">AI Interview Coach</span>
+</header>
+
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay">
+    <div style="width:72px;height:72px;margin-bottom:20px;position:relative">
+        <div class="loading-logo-spin">
+            <svg style="width:72px;height:72px" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4.5" stroke-linecap="butt">
+                <line x1="12" y1="12" x2="12" y2="1.5"/>
+                <line x1="12" y1="12" x2="22.01" y2="8.41"/>
+                <line x1="12" y1="12" x2="18.38" y2="20.59"/>
+                <line x1="12" y1="12" x2="5.62" y2="20.59"/>
+                <line x1="12" y1="12" x2="1.99" y2="8.41"/>
+            </svg>
+        </div>
+    </div>
+    <p class="text-gray-500 text-sm mb-3" id="loading-text">Analysing your resume…</p>
+    <div class="typing-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- MAIN -->
+<main class="flex-1 overflow-y-auto">
+    <div class="max-w-lg mx-auto px-6 py-10">
+
+        <!-- Welcome logo + heading -->
+        <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:32px">
+            <div class="welcome-logo-wrapper" id="welcomeLogo">
+                <div class="welcome-logo-rotate">
+                    <svg class="welcome-logo-svg" style="width:96px;height:96px" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="4.5" stroke-linecap="butt">
+                        <line x1="12" y1="12" x2="12" y2="1.5"/>
+                        <line x1="12" y1="12" x2="22.01" y2="8.41"/>
+                        <line x1="12" y1="12" x2="18.38" y2="20.59"/>
+                        <line x1="12" y1="12" x2="5.62" y2="20.59"/>
+                        <line x1="12" y1="12" x2="1.99" y2="8.41"/>
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-semibold tracking-tight text-center enter-2">Your AI Interview Coach</h2>
+            <p class="text-gray-500 text-center mt-2 max-w-sm leading-relaxed enter-3">
+                Upload your resume. We'll analyse your experience and run a real mock interview — tailored to you.
+            </p>
+        </div>
+
+        <!-- Upload section -->
+        <div id="upload-section" class="enter-4">
+            <div class="upload-zone" id="upload-zone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+                <input type="file" id="resume-file" accept=".pdf" onchange="onFileSelected(event)">
+                <div id="upload-placeholder">
+                    <div class="upload-icon" style="font-size:2rem;margin-bottom:8px">📄</div>
+                    <div class="font-medium text-sm">Drop your resume here</div>
+                    <div class="text-gray-400 text-xs mt-1">PDF only · Max 10MB</div>
+                </div>
+                <div id="file-selected" style="display:none">
+                    <div class="check-pop" style="font-size:2rem;margin-bottom:8px">✅</div>
+                    <div class="font-medium text-sm" id="file-name">resume.pdf</div>
+                    <div class="text-gray-400 text-xs mt-1">Ready to analyse</div>
+                </div>
+            </div>
+
+            <button id="analyse-btn" onclick="analyseResume()"
+                class="w-full mt-4 bg-black text-white py-3 rounded-full text-sm font-medium hover:scale-[1.02] transition-transform shadow-lg shadow-gray-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                disabled>
+                Analyse Resume & Start Interview →
+            </button>
+        </div>
+
+        <!-- Resume preview (shown after analysis) -->
+        <div id="resume-preview" style="display:none" class="fade-in">
+            <div class="hbox green mb-4">
+                <strong>✓ Resume analysed successfully</strong><br>
+                <span id="preview-summary" class="text-sm"></span>
+            </div>
+            <div class="mb-3">
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Detected Skills</div>
+                <div id="skills-list" class="flex flex-wrap gap-2"></div>
+            </div>
+            <div class="mb-6">
+                <div class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Experience</div>
+                <div id="companies-list" class="flex flex-wrap gap-2"></div>
+            </div>
+            <button onclick="goToInterview()"
+                class="w-full bg-black text-white py-3 rounded-full text-sm font-medium hover:scale-[1.02] transition-transform shadow-lg shadow-gray-200">
+                Start Interview →
+            </button>
+            <button onclick="resetUpload()" class="w-full mt-2 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                Upload a different resume
+            </button>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    let resumeData = null;
+
+    // ── DUST EXPLOSION (identical to template) ─────────────────
+    function spawnDust() {
+        const wrapper = document.getElementById('welcomeLogo');
+        const cx = wrapper.offsetWidth / 2;
+        const cy = wrapper.offsetHeight / 2;
+        const colors = ['#000000','#555555','#888888','#aaaaaa','#cccccc'];
+        const count = 18;
+        for (let i = 0; i < count; i++) {
+            const el = document.createElement('div');
+            el.className = 'dust-particle';
+            const angle = (360 / count) * i + (Math.random() * 20 - 10);
+            const dist  = 28 + Math.random() * 36;
+            const rad   = angle * Math.PI / 180;
+            const tx    = Math.cos(rad) * dist;
+            const ty    = Math.sin(rad) * dist;
+            const dur   = (0.5 + Math.random() * 0.4).toFixed(2) + 's';
+            const delay = (Math.random() * 0.1).toFixed(2) + 's';
+            el.style.cssText = `
+                left:${cx}px; top:${cy}px;
+                background:${colors[i % colors.length]};
+                --tx:${tx}px; --ty:${ty}px;
+                --dur:${dur}; --delay:${delay};
+                width:${2 + Math.random() * 3}px;
+                height:${2 + Math.random() * 3}px;
+            `;
+            wrapper.appendChild(el);
+            requestAnimationFrame(() => { el.classList.add('pop'); });
+            setTimeout(() => el.remove(), 800);
+        }
+        wrapper.classList.add('floating');
+    }
+    // Trigger dust at end of spin animation (1.2s) — same timing as template
+    setTimeout(spawnDust, 1200);
+
+    // ── DRAG AND DROP ──────────────────────────────────────────
+    function onDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+    function onDragLeave(e) { document.getElementById('upload-zone').classList.remove('drag-over'); }
+    function onDrop(e) {
+        e.preventDefault();
+        document.getElementById('upload-zone').classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') setFile(file);
+    }
+    function onFileSelected(e) { setFile(e.target.files[0]); }
+
+    function setFile(file) {
+        if (!file) return;
+        document.getElementById('upload-placeholder').style.display = 'none';
+        const sel = document.getElementById('file-selected');
+        sel.style.display = 'block';
+        // Re-trigger check-pop animation each time
+        const check = sel.querySelector('.check-pop');
+        check.style.animation = 'none';
+        requestAnimationFrame(() => { check.style.animation = ''; });
+        document.getElementById('file-name').textContent = file.name;
+        document.getElementById('analyse-btn').disabled = false;
+        document.getElementById('analyse-btn')._file = file;
+    }
+
+    async function analyseResume() {
+        const file = document.getElementById('analyse-btn')._file;
+        if (!file) return;
+        showLoading('Analysing your resume…');
+        const formData = new FormData();
+        formData.append('resume', file);
+        try {
+            const res = await fetch('/analyze-resume', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+            resumeData = data.resume;
+            sessionStorage.setItem('resumeData', JSON.stringify(resumeData));
+            hideLoading();
+            showPreview(resumeData);
+        } catch (err) {
+            hideLoading();
+            alert('Error analysing resume: ' + err.message);
+        }
+    }
+
+    function showPreview(rd) {
+        document.getElementById('upload-section').style.display = 'none';
+        const preview = document.getElementById('resume-preview');
+        preview.style.display = 'block';
+        // Re-trigger fade-in
+        preview.style.animation = 'none';
+        requestAnimationFrame(() => { preview.style.animation = ''; });
+
+        document.getElementById('preview-summary').textContent = rd.summary || `${rd.name} · ${rd.current_role}`;
+
+        const skillsList = document.getElementById('skills-list');
+        skillsList.innerHTML = '';
+        const skills = [...(rd.skills || []), ...(rd.technologies || [])].slice(0, 12);
+        skills.forEach((s, i) => {
+            const chip = document.createElement('span');
+            chip.className = 'skill-chip';
+            chip.style.animationDelay = `${i * 0.05}s`;
+            chip.textContent = s;
+            skillsList.appendChild(chip);
+        });
+
+        const companiesList = document.getElementById('companies-list');
+        companiesList.innerHTML = '';
+        (rd.companies || []).slice(0, 6).forEach((c, i) => {
+            const chip = document.createElement('span');
+            chip.className = 'skill-chip';
+            chip.style.background = '#f9fafb';
+            chip.style.animationDelay = `${i * 0.06}s`;
+            chip.textContent = c;
+            companiesList.appendChild(chip);
+        });
+    }
+
+    function goToInterview() { window.location.href = '/interview'; }
+
+    function resetUpload() {
+        resumeData = null;
+        sessionStorage.removeItem('resumeData');
+        document.getElementById('resume-preview').style.display = 'none';
+        document.getElementById('upload-section').style.display = 'block';
+        document.getElementById('upload-placeholder').style.display = 'block';
+        document.getElementById('file-selected').style.display = 'none';
+        document.getElementById('analyse-btn').disabled = true;
+        document.getElementById('analyse-btn')._file = null;
+        document.getElementById('resume-file').value = '';
+    }
+
+    function showLoading(text) {
+        document.getElementById('loading-text').textContent = text;
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'flex';
+        overlay.style.animation = 'none';
+        requestAnimationFrame(() => { overlay.style.animation = ''; });
+    }
+    function hideLoading() {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
+</script>
+</body>
+</html>
